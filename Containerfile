@@ -14,7 +14,7 @@ LABEL org.opencontainers.image.license="Liscense"
 # hadolint ignore=DL3016
 RUN apt-get update \
  && apt-get upgrade --yes \
- && apt-get install -y --no-install-recommends kubectl openssh-client gh \
+ && apt-get install -y --no-install-recommends kubectl skopeo openssh-client gh \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/* 
 
