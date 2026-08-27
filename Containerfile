@@ -1,4 +1,4 @@
-FROM docker.io/gautada/pi:dev
+FROM docker.io/gautada/pi:0.84.3
 
 # ╭――――――――――――――――――╮
 # │ METADATA         │
