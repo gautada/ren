@@ -1,4 +1,4 @@
-FROM docker.io/gautada/pi:0.84.3
+FROM docker.io/gautada/pi:0.84.4
 
 # ╭――――――――――――――――――╮
 # │ METADATA         │
@@ -8,13 +8,15 @@ LABEL org.opencontainers.image.description="A specific pi agent harness: Ren Nak
 LABEL org.opencontainers.image.url="https://hub.docker.com/r/gautada/ren"
 LABEL org.opencontainers.image.source="https://github.com/gautada/ren"
 LABEL org.opencontainers.image.license="Liscense"
+
 # ╭――――――――――――――――――╮
 # │ PACKAGES         │
 # ╰――――――――――――――――――╯
 # hadolint ignore=DL3016
 RUN apt-get update \
  && apt-get upgrade --yes \
- && apt-get install -y --no-install-recommends kubectl skopeo openssh-client gh \
+ && apt-get install -y --no-install-recommends kubectl skopeo \
+    openssh-client gh \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/* 
 
