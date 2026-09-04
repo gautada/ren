@@ -36,9 +36,9 @@ LABEL org.opencontainers.image.license="Liscense"
 RUN apt-get update \
  && apt-get upgrade --yes \
  && apt-get install -y --no-install-recommends kubectl skopeo \
-    openssh-client gh \
+    openssh-client gh ansible \
  && apt-get clean \
- && rm -rf /var/lib/apt/lists/* 
+ && rm -rf /var/lib/apt/lists/*
 
 # ╭――――――――――――――――――――╮
 # │ USER               │
@@ -64,7 +64,8 @@ RUN mkdir -p /home/${USER}/.kube
 WORKDIR /home/${USER}/.kube
 RUN ln -fsv /mnt/volumes/data/kube.config ./config
 WORKDIR /home/${USER}
-RUN ln -fsv /mnt/volumes/configuration/.gitconfig .gitconfig
+RUN ln -fsv /mnt/volumes/configuration/.gitconfig .gitconfig \
+ && ln -fsv /mnt/volumes/configuration/.cfinventory .cfinventory
 WORKDIR /home/${USER}
 RUN chown -R ${USER}:${USER} /home/${USER}
 
