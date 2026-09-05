@@ -1,4 +1,5 @@
 ARG DEBIAN_VERSION=13.6
+ARG PI_VERSION=0.84.4
 
 FROM docker.io/gautada/debian:${DEBIAN_VERSION} AS BUILD
 
@@ -18,7 +19,7 @@ RUN git clone --branch ${FLARECTL_VERSION} --depth 1 https://github.com/cloudfla
 WORKDIR /opt/cloudflare-go/cmd/flarectl
 RUN go build -o /opt/flarectl .
 
-FROM docker.io/gautada/pi:0.84.4 AS CONTAINER
+FROM docker.io/gautada/pi:${PI_VERSION}
 
 # ╭――――――――――――――――――╮
 # │ METADATA         │
@@ -68,5 +69,3 @@ RUN ln -fsv /mnt/volumes/configuration/.gitconfig .gitconfig \
  && ln -fsv /mnt/volumes/configuration/.cfinventory .cfinventory
 WORKDIR /home/${USER}
 RUN chown -R ${USER}:${USER} /home/${USER}
-
-
