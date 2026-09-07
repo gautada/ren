@@ -63,7 +63,10 @@ COPY --from=BUILD /opt/flarectl /usr/local/bin/flarectl
 # ╰――――――――――――――――――――╯
 RUN mkdir -p /home/${USER}/.kube
 WORKDIR /home/${USER}/.kube
-RUN ln -fsv /mnt/volumes/data/kube.config ./config
+RUN ln -fsv /mnt/volumes/data/kube.config ./config \
+ && mkdir -p /home/${USER}/.ssh
+WORKDIR /home/${USER}/.ssh
+RUN ln -fsv /mnt/volumes/secrets/.ssh_config config
 WORKDIR /home/${USER}
 RUN ln -fsv /mnt/volumes/configuration/.gitconfig .gitconfig \
  && ln -fsv /mnt/volumes/configuration/.cfinventory .cfinventory
