@@ -80,7 +80,7 @@ COPY --from=BUILD /opt/flarectl /usr/local/bin/flarectl
 # shadowed by the /mnt/volumes/data mount (unlike ~/.pi/agent/skills, which is
 # a symlink into the volume). Makes these skills a permanent part of the image.
 RUN mkdir -p /home/${USER}/.agents/skills
-COPY --from=BUILD --chown=${USER}:${USER} \
+COPY --from=SKILLS --chown=${USER}:${USER} \
      /opt/pi-agent-config/skills/pi-skill-developer \
      /home/${USER}/.agents/skills/pi-skill-developer
 COPY --from=SKILLS --chown=${USER}:${USER} \
