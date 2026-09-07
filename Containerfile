@@ -19,6 +19,14 @@ RUN git clone --branch ${FLARECTL_VERSION} --depth 1 https://github.com/cloudfla
 WORKDIR /opt/cloudflare-go/cmd/flarectl
 RUN go build -o /opt/flarectl .
 
+
+FROM docker.io/gautada/debian:${DEBIAN_VERSION} AS SKILLS
+
+WORKDIR /opt
+RUN git clone --depth 1 https://github.com/leunguu/pi-agent-config \
+ && git clone --depth 1 https://github.com/badlogic/pi-skills \
+ && git clone --depth 1 https://github.com/mattpocock/skills mattpocock-skills
+
 FROM docker.io/gautada/pi:${PI_VERSION}
 
 # ╭――――――――――――――――――╮
@@ -59,6 +67,29 @@ RUN /usr/sbin/usermod -l $USER slice \
 COPY --from=BUILD /opt/flarectl /usr/local/bin/flarectl
 
 # ╭――――――――――――――――――――╮
+# │ SKILLS             │
+# ╰――――――――――――――――――――╯
+# Bake skills into ~/.agents/skills — a global pi skill location that is NOT
+# shadowed by the /mnt/volumes/data mount (unlike ~/.pi/agent/skills, which is
+# a symlink into the volume). Makes these skills a permanent part of the image.
+RUN mkdir -p /home/${USER}/.agents/skills
+COPY --from=BUILD --chown=${USER}:${USER} \
+     /opt/pi-agent-config/skills/pi-skill-developer \
+     /home/${USER}/.agents/skills/pi-skill-developer
+COPY --from=SKILLS --chown=${USER}:${USER} \
+     /opt/mattpocock-skills/skills/engineering/research \
+     /home/${USER}/.agents/skills/research
+COPY --from=SKILLS --chown=${USER}:${USER} \
+     /opt/mattpocock-skills/skills/engineering/diagnosing-bugs \
+     /home/${USER}/.agents/skills/diagnosing-bugs
+COPY --from=SKILLS --chown=${USER}:${USER} \
+     /opt/mattpocock-skills/skills/productivity/writing-for-agents \
+     /home/${USER}/.agents/skills/writing-for-agents
+COPY --from=SKILLS --chown=${USER}:${USER} \
+     /opt/mattpocock-skills/skills/productivity/handoff \
+     /home/${USER}/.agents/skills/handoff
+
+# ╭――――――――――――――――――――╮
 # │ CONFIG             │
 # ╰――――――――――――――――――――╯
 RUN mkdir -p /home/${USER}/.kube
@@ -72,3 +103,5 @@ RUN ln -fsv /mnt/volumes/configuration/.gitconfig .gitconfig \
  && ln -fsv /mnt/volumes/configuration/.cfinventory .cfinventory
 WORKDIR /home/${USER}
 RUN chown -R ${USER}:${USER} /home/${USER}
+
+
