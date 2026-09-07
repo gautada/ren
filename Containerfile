@@ -22,6 +22,13 @@ RUN go build -o /opt/flarectl .
 
 FROM docker.io/gautada/debian:${DEBIAN_VERSION} AS SKILLS
 
+# hadolint ignore=DL3008
+RUN apt-get update \
+ && apt-get upgrade --yes \
+ && apt-get install --yes --no-install-recommends \
+            git golang-go \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 WORKDIR /opt
 RUN git clone --depth 1 https://github.com/leunguu/pi-agent-config \
  && git clone --depth 1 https://github.com/badlogic/pi-skills \
