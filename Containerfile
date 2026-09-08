@@ -84,7 +84,7 @@ COPY --from=SKILLS --chown=${USER}:${USER} \
      /opt/pi-agent-config/skills/pi-skill-developer \
      /home/${USER}/.agents/skills/pi-skill-developer
 COPY --from=SKILLS --chown=${USER}:${USER} \
-     /opt/mattpocock-skills/skills/wayfinder \
+     /opt/mattpocock-skills/skills/engineering/wayfinder \
      /home/${USER}/.agents/skills/wayfinder
 COPY --from=SKILLS --chown=${USER}:${USER} \
      /opt/mattpocock-skills/skills/engineering/research \
