@@ -20,6 +20,34 @@ WORKDIR /opt/cloudflare-go/cmd/flarectl
 RUN go build -o /opt/flarectl .
 
 
+FROM docker.io/gautada/debian:${DEBIAN_VERSION} AS TOOLS
+
+# Prebuilt, version-pinned, checksum-verified arm64 binaries for the SOPS-based
+# Flux secret-management workflow (getsops/sops + fluxcd/flux CLI). Downloaded
+# in a throwaway stage so curl/tarballs never land in the final image; only the
+# static binaries are COPYed forward. age/age-keygen come from Debian (apt) in
+# the final stage. All nodes are arm64 (aarch64), matching these assets.
+# hadolint ignore=DL3008
+RUN apt-get update \
+ && apt-get install --yes --no-install-recommends curl ca-certificates \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+WORKDIR /opt
+# sops: single static binary. https://github.com/getsops/sops/releases
+ARG SOPS_VERSION=v3.13.3
+ARG SOPS_SHA256=53b0abacd38ef1b12a66d6c100956691b9cefce018d91f81e73ddf7438b94d77
+RUN curl -fsSL -o sops "https://github.com/getsops/sops/releases/download/${SOPS_VERSION}/sops-${SOPS_VERSION}.linux.arm64" \
+ && echo "${SOPS_SHA256}  sops" | sha256sum -c - \
+ && chmod +x sops
+# flux CLI: tarball -> single binary. https://github.com/fluxcd/flux2/releases
+ARG FLUX_VERSION=2.9.5
+ARG FLUX_SHA256=f3e159af616ec0b9bd0a405c2185cf09d06b74652c1de3c7f377e8166826651a
+RUN curl -fsSL -o flux.tar.gz "https://github.com/fluxcd/flux2/releases/download/v${FLUX_VERSION}/flux_${FLUX_VERSION}_linux_arm64.tar.gz" \
+ && echo "${FLUX_SHA256}  flux.tar.gz" | sha256sum -c - \
+ && tar -xzf flux.tar.gz flux \
+ && chmod +x flux
+
+
 FROM docker.io/gautada/debian:${DEBIAN_VERSION} AS SKILLS
 
 # hadolint ignore=DL3008
@@ -53,7 +81,7 @@ LABEL org.opencontainers.image.license="Liscense"
 RUN apt-get update \
  && apt-get upgrade --yes \
  && apt-get install -y --no-install-recommends kubectl skopeo \
-    openssh-client gh ansible \
+    openssh-client gh ansible age \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -73,6 +101,10 @@ RUN /usr/sbin/usermod -l $USER slice \
 # │ APPLICATION        │
 # ╰――――――――――――――――――――╯
 COPY --from=BUILD /opt/flarectl /usr/local/bin/flarectl
+
+# SOPS-based Flux secret management: sops + flux CLI (age/age-keygen via apt).
+COPY --from=TOOLS /opt/sops /usr/local/bin/sops
+COPY --from=TOOLS /opt/flux /usr/local/bin/flux
 
 # ╭――――――――――――――――――――╮
 # │ SKILLS             │
