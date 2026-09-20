@@ -152,7 +152,8 @@ WORKDIR /home/${USER}/.kube
 RUN ln -fsv /mnt/volumes/data/kube.config ./config \
  && mkdir -p /home/${USER}/.ssh
 WORKDIR /home/${USER}/.ssh
-RUN ln -fsv /mnt/volumes/secrets/.ssh_config config
+RUN ln -fsv /mnt/volumes/secrets/.ssh_config config \
+ && ln -fsv /mnt/volumes/data/.ssh/known_hosts .
 WORKDIR /home/${USER}
 RUN ln -fsv /mnt/volumes/configuration/.gitconfig .gitconfig \
  && ln -fsv /mnt/volumes/configuration/.cfinventory .cfinventory
