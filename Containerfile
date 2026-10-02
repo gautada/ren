@@ -1,8 +1,7 @@
 ARG DEBIAN_VERSION=13.6
-ARG PI_VERSION=0.84.4
+ARG HERMES_VERSION=0.84.4
 
 FROM docker.io/gautada/debian:${DEBIAN_VERSION} AS BUILD
-
 # hadolint ignore=DL3008
 RUN apt-get update \
  && apt-get upgrade --yes \
@@ -21,7 +20,6 @@ RUN go build -o /opt/flarectl .
 
 
 FROM docker.io/gautada/debian:${DEBIAN_VERSION} AS TOOLS
-
 # Prebuilt, version-pinned, checksum-verified arm64 binaries for the SOPS-based
 # Flux secret-management workflow (getsops/sops + fluxcd/flux CLI). Downloaded
 # in a throwaway stage so curl/tarballs never land in the final image; only the
@@ -49,7 +47,6 @@ RUN curl -fsSL -o flux.tar.gz "https://github.com/fluxcd/flux2/releases/download
 
 
 FROM docker.io/gautada/debian:${DEBIAN_VERSION} AS SKILLS
-
 # hadolint ignore=DL3008
 RUN apt-get update \
  && apt-get upgrade --yes \
@@ -63,7 +60,7 @@ RUN git clone --depth 1 https://github.com/leunguu/pi-agent-config \
  && git clone --depth 1 https://github.com/badlogic/pi-skills \
  && git clone --depth 1 https://github.com/mattpocock/skills mattpocock-skills
 
-FROM docker.io/gautada/pi:${PI_VERSION}
+FROM docker.io/gautada/hermes:${HERMES_VERSION}
 
 # ╭――――――――――――――――――╮
 # │ METADATA         │
@@ -90,10 +87,11 @@ RUN apt-get update \
 # ╰――――――――――――――――――――╯
 # Rename the base user to this container user.
 # Follows the same pattern as other gautada containers.
+ARG OLDUSER=hermes
 ARG USER=ren
-RUN /usr/sbin/usermod -l $USER slice \
+RUN /usr/sbin/usermod -l $USER $OLDUSER \
  && /usr/sbin/usermod -d /home/$USER -m $USER \
- && /usr/sbin/groupmod -n $USER slice \
+ && /usr/sbin/groupmod -n $USER $OLDUSER \
  && PASSWORD="$(openssl rand -base64 32 | tr -dc 'A-Za-z0-9' | head -c 24)" \
  && printf '%s:%s\n' "$USER" "$PASSWORD" | /usr/sbin/chpasswd
 
@@ -101,7 +99,6 @@ RUN /usr/sbin/usermod -l $USER slice \
 # │ APPLICATION        │
 # ╰――――――――――――――――――――╯
 COPY --from=BUILD /opt/flarectl /usr/local/bin/flarectl
-
 # SOPS-based Flux secret management: sops + flux CLI (age/age-keygen via apt).
 COPY --from=TOOLS /opt/sops /usr/local/bin/sops
 COPY --from=TOOLS /opt/flux /usr/local/bin/flux
